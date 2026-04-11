@@ -1433,8 +1433,8 @@ export default function App() {
             <span style={{ fontWeight:700,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent" }}>RKS CODE</span>
           </div>
           <div>AI-Powered Career Guidance Platform • Built for Indian Students</div>
-          <div style={{ marginTop:6 }}>© 2024 RKS CODE. All rights reserved.</div>
-          <div style={{ display:"flex",justifyContent:"center",gap:24,marginTop:14,flexWrap:"wrap" }}>
+          <div style={{ marginTop:6 }}>© 2026 RKS CODE. All rights reserved.</div>
+          <div style={{ display:"flex",justifyContent:"center",gap:22,marginTop:14,flexWrap:"wrap" }}>
             {["home","about","contact"].map(p => (
               <button key={p} onClick={() => navigate(p)} style={{ background:"none",border:"none",color:"var(--text2)",cursor:"pointer",fontSize:13,fontFamily:"'Sora',sans-serif",textTransform:"capitalize",transition:"color 0.2s" }}
                 onMouseOver={e=>e.target.style.color="var(--accent1)"} onMouseOut={e=>e.target.style.color="var(--text2)"}>

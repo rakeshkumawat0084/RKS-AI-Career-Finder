@@ -1,5 +1,5 @@
-const express    = require("express");
-const router     = express.Router();
+const express = require("express");
+const router = express.Router();
 const nodemailer = require("nodemailer");
 
 // POST /api/email/send (admin only - protected by server.js)
@@ -15,9 +15,9 @@ router.post("/send", async (req, res) => {
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
-      auth: { 
-        user: process.env.GMAIL_USER, 
-        pass: process.env.GMAIL_PASS 
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS
       },
       pool: true,
       maxConnections: 1,
@@ -42,7 +42,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f4f6ff;margin:0;padding
 <div class="header"><h1>🚀 RKS CODE</h1><p>AI Career Path Recommendation System</p></div>
 <div class="body">
 <div class="badge">${type === "reply" ? "📬 Message Reply" : "🎯 Career Recommendation"}</div><br/>
-${body.replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br/>")}
+${body.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br/>")}
 </div>
 <div class="footer">
 <p>Sent from <a href="mailto:${process.env.GMAIL_USER}">${process.env.GMAIL_USER}</a> | <a href="${process.env.FRONTEND_URL || "http://localhost:3000"}">RKS CODE</a></p>

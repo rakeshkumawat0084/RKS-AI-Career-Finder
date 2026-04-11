@@ -92,6 +92,8 @@ const css = `
     --shadow:0 8px 32px rgba(59,130,246,0.15);
     --shadow2:0 20px 60px rgba(0,0,0,0.5);
     --radius:16px;
+    --nav-height: 64px;
+    --container-pad: 24px;
   }
   body.light{
     --bg:#f0f2ff;--surface:#ffffff;--surface2:#eef0ff;--border:#dde0f5;
@@ -136,6 +138,7 @@ const css = `
     font-family:'Sora',sans-serif;font-weight:700;font-size:15px;
     cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden;
     letter-spacing:0.5px;
+    display:inline-flex;align-items:center;justify-content:center;
   }
   .btn-primary::before{content:'';position:absolute;inset:0;background:rgba(255,255,255,0);transition:0.3s}
   .btn-primary:hover::before{background:rgba(255,255,255,0.15)}
@@ -148,6 +151,7 @@ const css = `
     padding:10px 24px;border-radius:50px;
     font-family:'Sora',sans-serif;font-weight:600;font-size:14px;
     cursor:pointer;transition:all 0.3s;
+    display:inline-flex;align-items:center;justify-content:center;
   }
   .btn-ghost:hover{border-color:var(--accent1);color:var(--accent1);background:rgba(59,130,246,0.08)}
 
@@ -301,7 +305,104 @@ const css = `
     animation:shimmer 1.5s infinite;
     border-radius:8px;
   }
+
+  /* Responsive Utilities */
+  .mobile-only { display: none; }
+  .desktop-only { display: flex; }
+
+  @media (max-width: 768px) {
+    :root {
+      --container-pad: 16px;
+    }
+    .mobile-only { display: flex; }
+    .desktop-only { display: none !important; }
+    
+    .btn-primary, .btn-ghost {
+      padding: 12px 24px;
+      font-size: 14px;
+    }
+    
+    .glass {
+      padding: 20px !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    :root {
+      --container-pad: 12px;
+    }
+    .btn-primary, .btn-ghost {
+      padding: 10px 20px;
+      font-size: 13px;
+    }
+    .hero-h1 { font-size: 32px !important; }
+    .hero-p { font-size: 15px !important; }
+  }
+
+  /* Hamburger Menu Animation */
+  .hamburger {
+    width: 28px; height: 18px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    cursor: pointer; background: none; border: none; padding: 0;
+    z-index: 1001;
+  }
+  .hamburger span {
+    width: 100%; height: 2px; background: var(--text);
+    border-radius: 2px; transition: 0.3s;
+  }
+  .hamburger.active span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+  .hamburger.active span:nth-child(2) { opacity: 0; }
+  .hamburger.active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+  .mobile-menu {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+    background: var(--bg); z-index: 999;
+    padding: 80px 24px 24px; display: flex; flex-direction: column; gap: 20px;
+    transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .mobile-menu.active { transform: translateX(0); }
+  .mobile-menu .nav-link { font-size: 20px; padding: 12px 0; width: 100%; text-align: left; opacity: 0; transform: translateX(20px); transition: 0.4s; }
+  .mobile-menu.active .nav-link { opacity: 1; transform: translateX(0); }
+  .mobile-menu.active .nav-link:nth-child(1) { transition-delay: 0.1s; }
+  .mobile-menu.active .nav-link:nth-child(2) { transition-delay: 0.2s; }
+  .mobile-menu.active .nav-link:nth-child(3) { transition-delay: 0.3s; }
+  .mobile-menu.active .nav-link:nth-child(4) { transition-delay: 0.4s; }
+
+  /* Admin Responsive Styles */
+  .admin-sidebar {
+    position: fixed; top: 64px; left: 0; bottom: 0;
+    background: var(--surface); border-right: 1px solid var(--border);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s ease;
+    z-index: 1002;
+  }
+  .admin-main {
+    transition: margin-left 0.3s ease;
+    min-height: calc(100vh - 64px);
+  }
+  .admin-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 1001; opacity: 0; pointer-events: none; transition: 0.3s;
+  }
+  .admin-overlay.active { opacity: 1; pointer-events: auto; }
+
+  @media (max-width: 992px) {
+    .admin-sidebar {
+      transform: translateX(-100%);
+      width: 280px !important;
+    }
+    .admin-sidebar.active { transform: translateX(0); }
+    .admin-main { margin-left: 0 !important; }
+  }
+
+  /* Table responsiveness */
+  .table-container {
+    width: 100%; overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--radius);
+  }
+  table { width: 100%; border-collapse: collapse; min-width: 600px; }
 `;
+
 
 // ─── HELPER COMPONENTS ───────────────────────────────────────────────────────
 
@@ -354,127 +455,165 @@ const Notification = ({ msg, icon, onClose }) => (
 const Navbar = ({ page, setPage, darkMode, toggleDark, savedCount }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const links = [
-    { id:"home", label:"Home" },
-    { id:"finder", label:"Career Finder" },
-    { id:"about", label:"About" },
-    { id:"contact", label:"Contact" },
+    { id: "home", label: "Home" },
+    { id: "finder", label: "Career Finder" },
+    { id: "about", label: "About" },
+    { id: "contact", label: "Contact" },
   ];
+
+  const handleNav = (id) => {
+    setPage(id);
+    setMenuOpen(false);
+  };
+
   return (
-    <nav style={{
-      position:"fixed",top:0,left:0,right:0,zIndex:1000,
-      background:"rgba(10,10,20,0.85)",backdropFilter:"blur(20px)",
-      borderBottom:"1px solid var(--border)",
-      padding:"0 24px",height:64,display:"flex",alignItems:"center",justifyContent:"space-between",
-      transition:"background 0.4s"
-    }}>
-      <div style={{ display:"flex",alignItems:"center",gap:10,cursor:"pointer" }} onClick={() => setPage("home")}>
-        <RKSLogo size={36}/>
-        <span style={{ fontWeight:800, fontSize:18, background:"linear-gradient(135deg,#3b82f6,#8b5cf6)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", letterSpacing:"-0.5px" }}>
-          RKS CODE
-        </span>
-      </div>
+    <>
+      <nav style={{
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
+        background: darkMode ? "rgba(10,10,20,0.85)" : "rgba(255,255,255,0.85)",
+        backdropFilter: "blur(20px)",
+        borderBottom: "1px solid var(--border)",
+        padding: "0 var(--container-pad)", height: "var(--nav-height)",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        transition: "background 0.4s"
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }} onClick={() => handleNav("home")}>
+          <RKSLogo size={36} />
+          <span style={{ fontWeight: 800, fontSize: 18, background: "linear-gradient(135deg,#3b82f6,#8b5cf6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "-0.5px" }}>
+            RKS CODE
+          </span>
+        </div>
 
-      {/* Desktop links */}
-      <div style={{ display:"flex",gap:28,alignItems:"center" }} className="desktop-nav">
+        {/* Desktop links */}
+        <div className="desktop-only" style={{ gap: 28, alignItems: "center" }}>
+          {links.map(l => (
+            <button key={l.id} className={`nav-link ${page === l.id ? "active" : ""}`} onClick={() => handleNav(l.id)}>{l.label}</button>
+          ))}
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div className="desktop-only" style={{ gap: 12, alignItems: "center" }}>
+            {savedCount > 0 && (
+              <button className="btn-ghost" style={{ padding: "7px 14px", fontSize: 13 }} onClick={() => handleNav("saved")}>
+                🔖 {savedCount}
+              </button>
+            )}
+            <button className="btn-primary" style={{ padding: "9px 20px", fontSize: 13 }} onClick={() => handleNav("finder")}>
+              Find Career
+            </button>
+          </div>
+
+          <button onClick={toggleDark} style={{
+            background: "var(--surface2)", border: "1px solid var(--border)",
+            borderRadius: "50%", width: 38, height: 38, cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16,
+            transition: "all 0.3s"
+          }}>
+            {darkMode ? "☀️" : "🌙"}
+          </button>
+
+          {/* Hamburger button (Mobile Only) */}
+          <button className={`hamburger mobile-only ${menuOpen ? "active" : ""}`} onClick={() => setMenuOpen(!menuOpen)}>
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile Menu Overlay */}
+      <div className={`mobile-menu ${menuOpen ? "active" : ""}`}>
         {links.map(l => (
-          <button key={l.id} className={`nav-link ${page===l.id?"active":""}`} onClick={() => setPage(l.id)}>{l.label}</button>
+          <button key={l.id} className={`nav-link ${page === l.id ? "active" : ""}`} onClick={() => handleNav(l.id)}>
+            {l.label}
+          </button>
         ))}
-      </div>
-
-      <div style={{ display:"flex",alignItems:"center",gap:12 }}>
         {savedCount > 0 && (
-          <button className="btn-ghost" style={{ padding:"7px 14px", fontSize:13 }} onClick={() => setPage("saved")}>
-            🔖 {savedCount}
+          <button className="nav-link" onClick={() => handleNav("saved")}>
+            🔖 Saved Careers ({savedCount})
           </button>
         )}
-        <button onClick={toggleDark} style={{
-          background:"var(--surface2)",border:"1px solid var(--border)",
-          borderRadius:"50%",width:38,height:38,cursor:"pointer",
-          display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,
-          transition:"all 0.3s"
-        }}>
-          {darkMode ? "☀️" : "🌙"}
-        </button>
-        <button className="btn-primary" style={{ padding:"9px 20px", fontSize:13 }} onClick={() => setPage("finder")}>
-          Find Career
+        <button className="btn-primary" style={{ marginTop: 10, width: "100%" }} onClick={() => handleNav("finder")}>
+          🚀 Find Career
         </button>
       </div>
-    </nav>
+    </>
   );
 };
+
 
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
 const HomePage = ({ setPage }) => {
   const stats = [
-    { n:"50+", l:"Career Paths" },
-    { n:"7", l:"Academic Streams" },
-    { n:"AI", l:"Powered Engine" },
-    { n:"Free", l:"Always" },
+    { n: "50+", l: "Career Paths" },
+    { n: "7", l: "Academic Streams" },
+    { n: "AI", l: "Powered Engine" },
+    { n: "Free", l: "Always" },
   ];
   return (
-    <div className="page" style={{ paddingTop:64, minHeight:"100vh", position:"relative", overflow:"hidden" }}>
-      <div className="hero-bg"/>
-      <div className="grid-bg"/>
+    <div className="page" style={{ paddingTop: "var(--nav-height)", minHeight: "100vh", position: "relative", overflow: "hidden" }}>
+      <div className="hero-bg" />
+      <div className="grid-bg" />
       {/* Floating orbs */}
-      <div className="floating-orb" style={{ width:400,height:400,background:"rgba(59,130,246,0.1)",top:-100,right:-100,animationDelay:"0s" }}/>
-      <div className="floating-orb" style={{ width:300,height:300,background:"rgba(139,92,246,0.1)",bottom:100,left:-80,animationDelay:"2s" }}/>
+      <div className="floating-orb" style={{ width: 400, height: 400, background: "rgba(59,130,246,0.1)", top: -100, right: -100, animationDelay: "0s" }} />
+      <div className="floating-orb" style={{ width: 300, height: 300, background: "rgba(139,92,246,0.1)", bottom: 100, left: -80, animationDelay: "2s" }} />
 
-      <div style={{ maxWidth:1100,margin:"0 auto",padding:"80px 24px 40px",textAlign:"center",position:"relative" }}>
-        <div className="fade-up" style={{ animationDelay:"0.1s", marginBottom:20 }}>
-          <span style={{ background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.25)",color:"var(--accent1)",padding:"6px 18px",borderRadius:20,fontSize:13,fontWeight:700,display:"inline-block" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "60px var(--container-pad) 40px", textAlign: "center", position: "relative" }}>
+        <div className="fade-up" style={{ animationDelay: "0.1s", marginBottom: 20 }}>
+          <span style={{ background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.25)", color: "var(--accent1)", padding: "6px 18px", borderRadius: 20, fontSize: 13, fontWeight: 700, display: "inline-block" }}>
             🤖 AI-Powered Career Intelligence
           </span>
         </div>
 
-        <h1 className="fade-up" style={{ animationDelay:"0.2s", fontSize:"clamp(36px,6vw,72px)", fontWeight:900, lineHeight:1.1, letterSpacing:"-2px", marginBottom:20 }}>
-          AI Career Path<br/>
-          <span style={{ background:"linear-gradient(135deg,#3b82f6,#8b5cf6,#f59e0b)", backgroundSize:"200%", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", animation:"gradShift 4s ease infinite" }}>
+        <h1 className="fade-up hero-h1" style={{ animationDelay: "0.2s", fontSize: "clamp(32px, 8vw, 72px)", fontWeight: 900, lineHeight: 1.1, letterSpacing: "-2px", marginBottom: 20 }}>
+          AI Career Path<br />
+          <span style={{ background: "linear-gradient(135deg,#3b82f6,#8b5cf6,#f59e0b)", backgroundSize: "200%", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", animation: "gradShift 4s ease infinite" }}>
             Recommendation
           </span>
         </h1>
 
-        <p className="fade-up" style={{ animationDelay:"0.3s", fontSize:"clamp(16px,2vw,20px)", color:"var(--text2)", maxWidth:600, margin:"0 auto 40px", lineHeight:1.7 }}>
+        <p className="fade-up hero-p" style={{ animationDelay: "0.3s", fontSize: "clamp(15px, 2.5vw, 20px)", color: "var(--text2)", maxWidth: 600, margin: "0 auto 40px", lineHeight: 1.7 }}>
           Find your perfect career using AI — tailored to your stream, skills, interests, and goals. Get a complete roadmap, skill gap analysis, and curated learning resources.
         </p>
 
-        <div className="fade-up" style={{ animationDelay:"0.4s", display:"flex", gap:16, justifyContent:"center", flexWrap:"wrap" }}>
-          <button className="btn-primary" style={{ fontSize:17, padding:"16px 40px", animation:"glow 3s infinite" }} onClick={() => setPage("finder")}>
+        <div className="fade-up" style={{ animationDelay: "0.4s", display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
+          <button className="btn-primary" style={{ fontSize: 17, padding: "16px 40px", animation: "glow 3s infinite" }} onClick={() => setPage("finder")}>
             🚀 Start Career Finder
           </button>
-          <button className="btn-ghost" style={{ fontSize:15, padding:"16px 32px" }} onClick={() => setPage("about")}>
+          <button className="btn-ghost" style={{ fontSize: 15, padding: "16px 32px" }} onClick={() => setPage("about")}>
             Learn More
           </button>
         </div>
 
         {/* Stats */}
-        <div className="fade-up" style={{ animationDelay:"0.6s", display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16, marginTop:80, maxWidth:700, margin:"80px auto 0" }}>
-          {stats.map((s,i) => (
-            <div key={i} className="glass" style={{ padding:"20px 10px", textAlign:"center" }}>
-              <div style={{ fontSize:28, fontWeight:900, background:"var(--grad)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", fontFamily:"'JetBrains Mono',monospace" }}>{s.n}</div>
-              <div style={{ fontSize:12, color:"var(--text2)", fontWeight:600, marginTop:4 }}>{s.l}</div>
+        <div className="fade-up" style={{ animationDelay: "0.6s", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 16, marginTop: 60, maxWidth: 800, margin: "60px auto 0" }}>
+          {stats.map((s, i) => (
+            <div key={i} className="glass" style={{ padding: "20px 10px", textAlign: "center" }}>
+              <div style={{ fontSize: 28, fontWeight: 900, background: "var(--grad)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "'JetBrains Mono',monospace" }}>{s.n}</div>
+              <div style={{ fontSize: 12, color: "var(--text2)", fontWeight: 600, marginTop: 4 }}>{s.l}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Feature cards */}
-      <div style={{ maxWidth:1100,margin:"0 auto",padding:"40px 24px 80px" }}>
-        <h2 style={{ textAlign:"center",fontWeight:800,fontSize:28,marginBottom:40 }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px var(--container-pad) 80px" }}>
+        <h2 style={{ textAlign: "center", fontWeight: 800, fontSize: "clamp(24px, 5vw, 32px)", marginBottom: 40 }}>
           Everything You Need to Choose the Right Career
         </h2>
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",gap:20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: 20 }}>
           {[
-            { icon:"🎯", t:"AI Matching", d:"Our engine analyzes your stream, skills, and interests to find your top 3 career matches with a compatibility score." },
-            { icon:"📊", t:"Skill Gap Analysis", d:"See exactly which skills you have and which ones you need to develop to land your dream career." },
-            { icon:"🗺️", t:"Roadmap Builder", d:"Get a step-by-step learning roadmap from beginner to professional with milestones and resources." },
-            { icon:"📹", t:"YouTube Learning", d:"Curated beginner, intermediate, and advanced YouTube courses for each career path you explore." },
-            { icon:"⚖️", t:"Career Comparison", d:"Compare two career paths side-by-side on salary, skills, time to learn, and job prospects." },
-            { icon:"📄", t:"PDF Export", d:"Download your personalized career roadmap as a professional PDF to keep and share." },
-          ].map((f,i) => (
-            <div key={i} className="glass card-hover" style={{ padding:28, animationDelay:`${i*0.1}s`, cursor:"pointer" }}>
-              <div style={{ fontSize:36, marginBottom:16 }}>{f.icon}</div>
-              <div style={{ fontWeight:700, fontSize:17, marginBottom:8 }}>{f.t}</div>
-              <div style={{ color:"var(--text2)", fontSize:14, lineHeight:1.6 }}>{f.d}</div>
+            { icon: "🎯", t: "AI Matching", d: "Our engine analyzes your stream, skills, and interests to find your top 3 career matches with a compatibility score." },
+            { icon: "📊", t: "Skill Gap Analysis", d: "See exactly which skills you have and which ones you need to develop to land your dream career." },
+            { icon: "🗺️", t: "Roadmap Builder", d: "Get a step-by-step learning roadmap from beginner to professional with milestones and resources." },
+            { icon: "📹", t: "YouTube Learning", d: "Curated beginner, intermediate, and advanced YouTube courses for each career path you explore." },
+            { icon: "⚖️", t: "Career Comparison", d: "Compare two career paths side-by-side on salary, skills, time to learn, and job prospects." },
+            { icon: "📄", t: "PDF Export", d: "Download your personalized career roadmap as a professional PDF to keep and share." },
+          ].map((f, i) => (
+            <div key={i} className="glass card-hover" style={{ padding: 28, animationDelay: `${i * 0.1}s`, cursor: "pointer" }}>
+              <div style={{ fontSize: 36, marginBottom: 16 }}>{f.icon}</div>
+              <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 8 }}>{f.t}</div>
+              <div style={{ color: "var(--text2)", fontSize: 14, lineHeight: 1.6 }}>{f.d}</div>
             </div>
           ))}
         </div>
@@ -485,26 +624,26 @@ const HomePage = ({ setPage }) => {
 
 // ─── STREAM SELECTION ─────────────────────────────────────────────────────────
 const StreamPage = ({ onSelect }) => (
-  <div className="page" style={{ paddingTop:90,minHeight:"100vh",maxWidth:1100,margin:"0 auto",padding:"90px 24px 60px" }}>
-    <div className="fade-up" style={{ textAlign:"center",marginBottom:50 }}>
-      <div style={{ fontSize:13,fontWeight:700,color:"var(--accent1)",letterSpacing:2,textTransform:"uppercase",marginBottom:12 }}>Step 1 of 4</div>
-      <h2 style={{ fontSize:36,fontWeight:900,marginBottom:12 }}>Choose Your Academic Stream</h2>
-      <p style={{ color:"var(--text2)",fontSize:16 }}>This helps our AI understand your educational background</p>
+  <div className="page" style={{ paddingTop: "var(--nav-height)", minHeight: "100vh", maxWidth: 1100, margin: "0 auto", padding: "60px var(--container-pad)" }}>
+    <div className="fade-up" style={{ textAlign: "center", marginBottom: 50 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--accent1)", letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>Step 1 of 4</div>
+      <h2 style={{ fontSize: "clamp(24px, 6vw, 36px)", fontWeight: 900, marginBottom: 12 }}>Choose Your Academic Stream</h2>
+      <p style={{ color: "var(--text2)", fontSize: 16 }}>This helps our AI understand your educational background</p>
     </div>
-    <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:20 }}>
-      {STREAMS.map((s,i) => (
-        <div key={s.id} className="glass card-hover scale-in" style={{ padding:30,cursor:"pointer",animationDelay:`${i*0.08}s`,border:`1px solid rgba(${s.color.slice(1).match(/../g).map(x=>parseInt(x,16)).join(",")},0.25)` }}
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: 20 }}>
+      {STREAMS.map((s, i) => (
+        <div key={s.id} className="glass card-hover scale-in" style={{ padding: 30, cursor: "pointer", animationDelay: `${i * 0.08}s`, border: `1px solid rgba(${s.color.slice(1).match(/../g).map(x => parseInt(x, 16)).join(",")},0.25)` }}
           onClick={() => onSelect(s.id)}>
-          <div style={{ fontSize:48,marginBottom:16 }}>{s.icon}</div>
-          <div style={{ fontWeight:800,fontSize:20,marginBottom:8 }}>{s.label}</div>
-          <div style={{ color:"var(--text2)",fontSize:14,marginBottom:16 }}>{s.desc}</div>
-          <div style={{ display:"flex",flexWrap:"wrap",gap:6 }}>
-            {STREAM_SKILLS[s.id].slice(0,3).map(sk => (
-              <span key={sk} className="skill-tag" style={{ fontSize:11 }}>{sk}</span>
+          <div style={{ fontSize: "clamp(32px, 8vw, 48px)", marginBottom: 16 }}>{s.icon}</div>
+          <div style={{ fontWeight: 800, fontSize: 20, marginBottom: 8 }}>{s.label}</div>
+          <div style={{ color: "var(--text2)", fontSize: 14, marginBottom: 16 }}>{s.desc}</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {STREAM_SKILLS[s.id].slice(0, 3).map(sk => (
+              <span key={sk} className="skill-tag" style={{ fontSize: 11 }}>{sk}</span>
             ))}
-            <span style={{ color:"var(--text2)",fontSize:12,padding:"4px 10px" }}>+{STREAM_SKILLS[s.id].length - 3} more</span>
+            <span style={{ color: "var(--text2)", fontSize: 12, padding: "4px 10px" }}>+{STREAM_SKILLS[s.id].length - 3} more</span>
           </div>
-          <div style={{ marginTop:20,display:"flex",alignItems:"center",gap:8,color:s.color,fontWeight:700,fontSize:14 }}>
+          <div style={{ marginTop: 20, display: "flex", alignItems: "center", gap: 8, color: s.color, fontWeight: 700, fontSize: 14 }}>
             Select Stream <span>→</span>
           </div>
         </div>
@@ -529,32 +668,34 @@ const SkillsPage = ({ stream, onSubmit }) => {
   const toggle = sk => setSel(prev => prev.includes(sk) ? prev.filter(x => x !== sk) : [...prev, sk]);
 
   return (
-    <div className="page" style={{ paddingTop:90,maxWidth:900,margin:"0 auto",padding:"90px 24px 60px" }}>
-      <div className="fade-up" style={{ textAlign:"center",marginBottom:40 }}>
-        <div style={{ fontSize:13,fontWeight:700,color:"var(--accent1)",letterSpacing:2,textTransform:"uppercase",marginBottom:12 }}>Steps 2–3 of 4</div>
-        <h2 style={{ fontSize:36,fontWeight:900,marginBottom:12 }}>
+    <div className="page" style={{ paddingTop: "var(--nav-height)", maxWidth: 900, margin: "0 auto", padding: "60px var(--container-pad)" }}>
+      <div className="fade-up" style={{ textAlign: "center", marginBottom: 40 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--accent1)", letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>Steps 2–3 of 4</div>
+        <h2 style={{ fontSize: "clamp(22px, 5vw, 36px)", fontWeight: 900, marginBottom: 12 }}>
           {streamInfo?.icon} {streamInfo?.label} — Skills & Preferences
         </h2>
-        <p style={{ color:"var(--text2)",fontSize:16 }}>Select skills you already have, then fill in your preferences</p>
+        <p style={{ color: "var(--text2)", fontSize: 16 }}>Select skills you already have, then fill in your preferences</p>
       </div>
 
       {/* Skills */}
-      <div className="glass" style={{ padding:28,marginBottom:24 }}>
-        <div style={{ fontWeight:700,fontSize:18,marginBottom:6 }}>✅ Select Your Existing Skills</div>
-        <div style={{ color:"var(--text2)",fontSize:13,marginBottom:20 }}>
+      <div className="glass" style={{ padding: 28, marginBottom: 24 }}>
+        <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 6 }}>✅ Select Your Existing Skills</div>
+        <div style={{ color: "var(--text2)", fontSize: 13, marginBottom: 20 }}>
           {sel.length} of {skills.length} selected
         </div>
-        <div className="progress-bar" style={{ marginBottom:20 }}>
-          <div className="progress-fill" style={{ width:`${(sel.length/skills.length)*100}%` }}/>
+        <div className="progress-bar" style={{ marginBottom: 20 }}>
+          <div className="progress-fill" style={{ width: `${(sel.length / skills.length) * 100}%` }} />
         </div>
-        <div style={{ display:"flex",flexWrap:"wrap",gap:8 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {skills.map(sk => (
             <span key={sk} onClick={() => toggle(sk)} className="skill-tag"
-              style={{ cursor:"pointer",
+              style={{
+                cursor: "pointer",
                 background: sel.includes(sk) ? "rgba(16,185,129,0.15)" : "",
                 color: sel.includes(sk) ? "var(--accent4)" : "",
                 borderColor: sel.includes(sk) ? "rgba(16,185,129,0.4)" : "",
-                transform: sel.includes(sk) ? "scale(1.05)" : "scale(1)" }}>
+                transform: sel.includes(sk) ? "scale(1.05)" : "scale(1)"
+              }}>
               {sel.includes(sk) ? "✓ " : ""}{sk}
             </span>
           ))}
@@ -562,28 +703,28 @@ const SkillsPage = ({ stream, onSubmit }) => {
       </div>
 
       {/* Additional info */}
-      <div className="glass" style={{ padding:28,marginBottom:24 }}>
-        <div style={{ fontWeight:700,fontSize:18,marginBottom:20 }}>📋 Additional Information</div>
+      <div className="glass" style={{ padding: 28, marginBottom: 24 }}>
+        <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20 }}>📋 Additional Information</div>
 
         {/* Name & Email for lead capture */}
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",gap:20,marginBottom:20,paddingBottom:20,borderBottom:"1px solid var(--border)" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 250px), 1fr))", gap: 20, marginBottom: 20, paddingBottom: 20, borderBottom: "1px solid var(--border)" }}>
           <div>
-            <label style={{ display:"block",marginBottom:8,fontWeight:600,fontSize:13,color:"var(--text2)" }}>YOUR NAME <span style={{ color:"var(--accent1)" }}>*</span></label>
-            <input className="search-input" style={{ paddingLeft:16,borderRadius:10 }}
+            <label style={{ display: "block", marginBottom: 8, fontWeight: 600, fontSize: 13, color: "var(--text2)" }}>YOUR NAME <span style={{ color: "var(--accent1)" }}>*</span></label>
+            <input className="search-input" style={{ paddingLeft: 16, borderRadius: 10 }}
               placeholder="Enter your full name"
-              value={name} onChange={e => setName(e.target.value)}/>
+              value={name} onChange={e => setName(e.target.value)} />
           </div>
           <div>
-            <label style={{ display:"block",marginBottom:8,fontWeight:600,fontSize:13,color:"var(--text2)" }}>EMAIL ADDRESS <span style={{ color:"var(--accent1)" }}>*</span></label>
-            <input className="search-input" style={{ paddingLeft:16,borderRadius:10 }}
+            <label style={{ display: "block", marginBottom: 8, fontWeight: 600, fontSize: 13, color: "var(--text2)" }}>EMAIL ADDRESS <span style={{ color: "var(--accent1)" }}>*</span></label>
+            <input className="search-input" style={{ paddingLeft: 16, borderRadius: 10 }}
               placeholder="your@email.com" type="email"
-              value={email} onChange={e => setEmail(e.target.value)}/>
+              value={email} onChange={e => setEmail(e.target.value)} />
           </div>
         </div>
 
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",gap:20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 250px), 1fr))", gap: 20 }}>
           <div>
-            <label style={{ display:"block",marginBottom:8,fontWeight:600,fontSize:13,color:"var(--text2)" }}>EDUCATION LEVEL</label>
+            <label style={{ display: "block", marginBottom: 8, fontWeight: 600, fontSize: 13, color: "var(--text2)" }}>EDUCATION LEVEL</label>
             <select value={edu} onChange={e => setEdu(e.target.value)}>
               <option value="">Select education level</option>
               <option>10th Pass</option>
@@ -595,7 +736,7 @@ const SkillsPage = ({ stream, onSubmit }) => {
             </select>
           </div>
           <div>
-            <label style={{ display:"block",marginBottom:8,fontWeight:600,fontSize:13,color:"var(--text2)" }}>WORK TYPE PREFERENCE</label>
+            <label style={{ display: "block", marginBottom: 8, fontWeight: 600, fontSize: 13, color: "var(--text2)" }}>WORK TYPE PREFERENCE</label>
             <select value={workType} onChange={e => setWorkType(e.target.value)}>
               <option value="">Select work type</option>
               <option>Government Job</option>
@@ -607,7 +748,7 @@ const SkillsPage = ({ stream, onSubmit }) => {
             </select>
           </div>
           <div>
-            <label style={{ display:"block",marginBottom:8,fontWeight:600,fontSize:13,color:"var(--text2)" }}>CAREER GOAL</label>
+            <label style={{ display: "block", marginBottom: 8, fontWeight: 600, fontSize: 13, color: "var(--text2)" }}>CAREER GOAL</label>
             <select value={goal} onChange={e => setGoal(e.target.value)}>
               <option value="">Select career goal</option>
               <option>High Income</option>
@@ -619,26 +760,26 @@ const SkillsPage = ({ stream, onSubmit }) => {
             </select>
           </div>
           <div>
-            <label style={{ display:"block",marginBottom:8,fontWeight:600,fontSize:13,color:"var(--text2)" }}>INTERESTS</label>
-            <input className="search-input" style={{ paddingLeft:16,borderRadius:10 }}
+            <label style={{ display: "block", marginBottom: 8, fontWeight: 600, fontSize: 13, color: "var(--text2)" }}>INTERESTS</label>
+            <input className="search-input" style={{ paddingLeft: 16, borderRadius: 10 }}
               placeholder="e.g. technology, healthcare, finance..."
-              value={interests} onChange={e => setInterests(e.target.value)}/>
+              value={interests} onChange={e => setInterests(e.target.value)} />
           </div>
         </div>
 
         {/* Salary slider */}
-        <div style={{ marginTop:24 }}>
-          <label style={{ display:"block",marginBottom:8,fontWeight:600,fontSize:13,color:"var(--text2)" }}>
-            SALARY EXPECTATION: <span style={{ color:"var(--accent1)",fontFamily:"'JetBrains Mono',monospace" }}>₹{salary}L – ₹{salary+10}L/yr</span>
+        <div style={{ marginTop: 24 }}>
+          <label style={{ display: "block", marginBottom: 8, fontWeight: 600, fontSize: 13, color: "var(--text2)" }}>
+            SALARY EXPECTATION: <span style={{ color: "var(--accent1)", fontFamily: "'JetBrains Mono',monospace" }}>₹{salary}L – ₹{salary + 10}L/yr</span>
           </label>
-          <input type="range" min={2} max={50} value={salary} onChange={e => setSalary(Number(e.target.value))} style={{ width:"100%" }}/>
-          <div style={{ display:"flex",justifyContent:"space-between",fontSize:12,color:"var(--text2)",marginTop:4 }}>
+          <input type="range" min={2} max={50} value={salary} onChange={e => setSalary(Number(e.target.value))} style={{ width: "100%" }} />
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--text2)", marginTop: 4 }}>
             <span>₹2L</span><span>₹25L</span><span>₹50L+</span>
           </div>
         </div>
       </div>
 
-      <button className="btn-primary" style={{ width:"100%",fontSize:16,padding:"16px" }}
+      <button className="btn-primary" style={{ width: "100%", fontSize: 16, padding: "16px" }}
         onClick={() => onSubmit({ stream, skills: sel, name, email, edu, interests, salary, workType, goal })}>
         🤖 Generate AI Recommendations →
       </button>
@@ -662,12 +803,12 @@ const ResultsPage = ({ data, saved, toggleSave, onDetail, onCompare, compareList
   });
 
   return (
-    <div className="page" style={{ paddingTop:90,maxWidth:1100,margin:"0 auto",padding:"90px 24px 60px" }}>
+    <div className="page" style={{ paddingTop: "var(--nav-height)", maxWidth: 1100, margin: "0 auto", padding: "60px var(--container-pad)" }}>
       {/* Header */}
       <div className="fade-up" style={{ marginBottom:36 }}>
         <div style={{ fontSize:13,fontWeight:700,color:"var(--accent1)",letterSpacing:2,textTransform:"uppercase",marginBottom:8 }}>AI Results</div>
         <div style={{ display:"flex",alignItems:"flex-end",justifyContent:"space-between",flexWrap:"wrap",gap:12 }}>
-          <h2 style={{ fontSize:32,fontWeight:900 }}>
+          <h2 style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 900 }}>
             {streamInfo?.icon} Top Careers for {streamInfo?.label}
           </h2>
           <div style={{ display:"flex",gap:8 }}>
@@ -703,7 +844,7 @@ const ResultsPage = ({ data, saved, toggleSave, onDetail, onCompare, compareList
       </div>
 
       {/* Career cards */}
-      <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",gap:24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 24 }}>
         {filtered
           .filter(c => tab === "saved" ? saved.includes(c.id) : tab === "top" ? c.match >= 85 : true)
           .sort((a,b) => b.match - a.match)
@@ -766,10 +907,10 @@ const CareerCard = ({ career: c, index, saved, onSave, onDetail, userSkills, inC
 
       <div style={{ display:"flex",gap:8,flexWrap:"wrap",marginTop:"auto" }}>
         <button className="btn-primary" style={{ flex:1,padding:"10px",fontSize:13 }} onClick={onDetail}>View Details →</button>
-        <button className="btn-ghost" style={{ padding:"10px 14px",fontSize:16 }} onClick={onSave} title="Save">
+        <button className="btn-ghost" style={{ padding: "10px 14px", fontSize: 16 }} onClick={onSave} title="Save">
           {saved ? "🔖" : "📌"}
         </button>
-        <button className="btn-ghost" style={{ padding:"10px 14px",fontSize:13, borderColor: inCompare ? "var(--accent1)" : "" }}
+        <button className="btn-ghost" style={{ padding: "10px 14px", fontSize: 13, borderColor: inCompare ? "var(--accent1)" : "" }}
           onClick={onCompareToggle} title="Compare">⚖️</button>
       </div>
     </div>
@@ -798,7 +939,7 @@ Required Skills:
 ${c.skills.map(s => `• ${s}`).join('\n')}
 
 Learning Roadmap:
-${c.roadmap.map((r,i) => `${i+1}. ${r}`).join('\n')}
+${c.roadmap.map((r, i) => `${i + 1}. ${r}`).join('\n')}
 
 Skill Gap Analysis:
 You have: ${ownedSkills.join(', ') || 'None yet'}
@@ -806,41 +947,41 @@ You need: ${gapSkills.join(', ') || 'None - Full match!'}
 
 Generated by RKS CODE AI Career System
     `;
-    const blob = new Blob([content], { type:"text/plain" });
+    const blob = new Blob([content], { type: "text/plain" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `${c.name.replace(/\s+/g,"-")}-Roadmap.txt`;
+    a.download = `${c.name.replace(/\s+/g, "-")}-Roadmap.txt`;
     a.click();
   };
 
   return (
-    <div className="page" style={{ paddingTop:90,maxWidth:900,margin:"0 auto",padding:"90px 24px 60px" }}>
+    <div className="page" style={{ paddingTop: "var(--nav-height)", maxWidth: 900, margin: "0 auto", padding: "60px var(--container-pad)" }}>
       {/* Back */}
-      <button className="btn-ghost" style={{ marginBottom:24,fontSize:14 }} onClick={onBack}>← Back to Results</button>
+      <button className="btn-ghost" style={{ marginBottom: 24, fontSize: 14 }} onClick={onBack}>← Back to Results</button>
 
       {/* Hero */}
-      <div className="glass fade-up" style={{ padding:36,marginBottom:24,position:"relative",overflow:"hidden" }}>
-        <div style={{ position:"absolute",inset:0,background:"radial-gradient(ellipse at top right,rgba(59,130,246,0.1),transparent 60%)" }}/>
-        <div style={{ position:"relative" }}>
-          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:20 }}>
-            <div>
-              <div style={{ fontSize:56,marginBottom:12 }}>{c.icon}</div>
-              <h1 style={{ fontSize:36,fontWeight:900,marginBottom:8 }}>{c.name}</h1>
-              <p style={{ color:"var(--text2)",fontSize:16,maxWidth:500,lineHeight:1.6 }}>{c.desc}</p>
-              <div style={{ display:"flex",gap:12,marginTop:16,flexWrap:"wrap" }}>
+      <div className="glass fade-up" style={{ padding: "clamp(24px, 5vw, 36px)", marginBottom: 24, position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at top right,rgba(59,130,246,0.1),transparent 60%)" }} />
+        <div style={{ position: "relative" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 24 }}>
+            <div style={{ flex: "1 1 300px" }}>
+              <div style={{ fontSize: "clamp(40px, 8vw, 56px)", marginBottom: 12 }}>{c.icon}</div>
+              <h1 style={{ fontSize: "clamp(24px, 6vw, 36px)", fontWeight: 900, marginBottom: 8 }}>{c.name}</h1>
+              <p style={{ color: "var(--text2)", fontSize: 16, maxWidth: 500, lineHeight: 1.6 }}>{c.desc}</p>
+              <div style={{ display: "flex", gap: 12, marginTop: 16, flexWrap: "wrap" }}>
                 <span className="salary-badge">💰 {c.salary}</span>
-                <span style={{ background:"rgba(139,92,246,0.1)",border:"1px solid rgba(139,92,246,0.25)",color:"#a78bfa",padding:"6px 14px",borderRadius:20,fontSize:13,fontWeight:700 }}>
+                <span style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.25)", color: "#a78bfa", padding: "6px 14px", borderRadius: 20, fontSize: 13, fontWeight: 700 }}>
                   🎓 {c.degree}
                 </span>
               </div>
             </div>
-            <div style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:12 }}>
-              <MatchRing pct={c.match} size={100}/>
-              <div style={{ display:"flex",gap:8 }}>
-                <button className="btn-ghost" style={{ padding:"8px 14px",fontSize:13 }} onClick={onSave}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, flexShrink: 0, width: "100%", maxWidth: "120px", margin: "0 auto" }}>
+              <MatchRing pct={c.match} size={100} />
+              <div style={{ display: "flex", gap: 8, width: "100%", justifyContent: "center" }}>
+                <button className="btn-ghost" style={{ padding: "8px 14px", fontSize: 13, flex: 1 }} onClick={onSave}>
                   {saved ? "🔖 Saved" : "📌 Save"}
                 </button>
-                <button className="btn-ghost" style={{ padding:"8px 14px",fontSize:13 }} onClick={downloadPDF}>
+                <button className="btn-ghost" style={{ padding: "8px 14px", fontSize: 13, flex: 1 }} onClick={downloadPDF}>
                   📄 PDF
                 </button>
               </div>
@@ -860,9 +1001,9 @@ Generated by RKS CODE AI Career System
 
       {/* Overview */}
       {activeTab === "overview" && (
-        <div className="fade-up glass" style={{ padding:28 }}>
-          <h3 style={{ fontWeight:800,fontSize:20,marginBottom:20 }}>Career Overview</h3>
-          <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:16,marginBottom:24 }}>
+        <div className="fade-up glass" style={{ padding: 28 }}>
+          <h3 style={{ fontWeight: 800, fontSize: 20, marginBottom: 20 }}>Career Overview</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))", gap: 16, marginBottom: 24 }}>
             {[
               { l:"Salary Range", v:c.salary, icon:"💰" },
               { l:"AI Match Score", v:`${c.match}%`, icon:"🎯" },
@@ -959,33 +1100,29 @@ Generated by RKS CODE AI Career System
 
       {/* Videos */}
       {activeTab === "videos" && (
-        <div className="fade-up glass" style={{ padding:28 }}>
-          <h3 style={{ fontWeight:800,fontSize:20,marginBottom:6 }}>📹 Recommended Learning Resources</h3>
-          <p style={{ color:"var(--text2)",fontSize:14,marginBottom:24 }}>Curated YouTube courses from beginner to advanced level</p>
-          <div style={{ display:"flex",flexDirection:"column",gap:16 }}>
-            {c.videos.map((v,i) => (
-              <div key={i} className="video-card" style={{ display:"flex",gap:16,padding:0,overflow:"hidden" }}>
-                <div style={{ position:"relative",flexShrink:0 }}>
-                  <img src={v.thumb} alt={v.title} style={{ width:140,height:90,objectFit:"cover" }}
-                    onError={e => { e.target.style.background="#1a1a35"; e.target.src=""; }}/>
-                  <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center" }}>
-                    <div style={{ width:36,height:36,borderRadius:"50%",background:"rgba(239,68,68,0.9)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14 }}>▶</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {c.videos.map((v, i) => (
+              <div key={i} className="video-card responsive-card" style={{ display: "flex", gap: 16, padding: 0, overflow: "hidden", flexWrap: "wrap" }}>
+                <div style={{ position: "relative", flexShrink: 0, width: "100%", maxWidth: "min(100%, 200px)" }}>
+                  <img src={v.thumb} alt={v.title} style={{ width: "100%", height: 110, objectFit: "cover" }}
+                    onError={e => { e.target.style.background = "#1a1a35"; e.target.src = ""; }} />
+                  <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(239,68,68,0.9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>▶</div>
                   </div>
                 </div>
-                <div style={{ padding:"14px 16px 14px 0",flex:1,display:"flex",flexDirection:"column",justifyContent:"center" }}>
-                  <div style={{ display:"flex",gap:8,alignItems:"center",marginBottom:6 }}>
-                    <span className="level-badge" style={{ background:`${LEVEL_COLORS[v.level]}22`,color:LEVEL_COLORS[v.level] }}>{v.level}</span>
+                <div style={{ padding: "14px", flex: "1 1 200px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}>
+                    <span className="level-badge" style={{ background: `${LEVEL_COLORS[v.level]}22`, color: LEVEL_COLORS[v.level] }}>{v.level}</span>
                   </div>
-                  <div style={{ fontWeight:700,fontSize:15,marginBottom:8,lineHeight:1.3 }}>{v.title}</div>
+                  <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8, lineHeight: 1.3 }}>{v.title}</div>
                   <a href={v.url} target="_blank" rel="noopener noreferrer"
-                    style={{ color:"var(--accent1)",fontSize:13,fontWeight:600,textDecoration:"none",display:"inline-flex",alignItems:"center",gap:6 }}>
+                    style={{ color: "var(--accent1)", fontSize: 13, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
                     ▶ Watch on YouTube
                   </a>
                 </div>
               </div>
             ))}
           </div>
-        </div>
       )}
     </div>
   );
@@ -1003,18 +1140,18 @@ const ComparePage = ({ careers, onBack, userSkills }) => {
     { l:"Skills You Have", ka: a.skills.filter(s => userSkills.includes(s)).length, kb: b.skills.filter(s => userSkills.includes(s)).length },
   ];
   return (
-    <div className="page" style={{ paddingTop:90,maxWidth:900,margin:"0 auto",padding:"90px 24px 60px" }}>
-      <button className="btn-ghost" style={{ marginBottom:24 }} onClick={onBack}>← Back</button>
-      <h2 style={{ fontSize:32,fontWeight:900,marginBottom:8 }}>⚖️ Career Comparison</h2>
-      <p style={{ color:"var(--text2)",marginBottom:36 }}>Side-by-side analysis of your selected careers</p>
+    <div className="page" style={{ paddingTop: "var(--nav-height)", maxWidth: 900, margin: "0 auto", padding: "60px var(--container-pad)" }}>
+      <button className="btn-ghost" style={{ marginBottom: 24, fontSize: 14 }} onClick={onBack}>← Back to Results</button>
+      <h2 style={{ fontSize: "clamp(24px, 6vw, 32px)", fontWeight: 900, marginBottom: 8 }}>⚖️ Career Comparison</h2>
+      <p style={{ color: "var(--text2)", marginBottom: 36 }}>Side-by-side analysis of your selected careers</p>
 
       {/* Header cards */}
-      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,marginBottom:24 }}>
-        {[a,b].map(c => (
-          <div key={c.id} className="glass" style={{ padding:24,textAlign:"center" }}>
-            <div style={{ fontSize:48,marginBottom:8 }}>{c.icon}</div>
-            <div style={{ fontWeight:800,fontSize:18 }}>{c.name}</div>
-            <MatchRing pct={c.match} size={70}/>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: 20, marginBottom: 24 }}>
+        {[a, b].map(c => (
+          <div key={c.id} className="glass" style={{ padding: 24, textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+            <div style={{ fontSize: "clamp(32px, 8vw, 48px)" }}>{c.icon}</div>
+            <div style={{ fontWeight: 800, fontSize: 18 }}>{c.name}</div>
+            <MatchRing pct={c.match} size={70} />
           </div>
         ))}
       </div>
@@ -1024,20 +1161,20 @@ const ComparePage = ({ careers, onBack, userSkills }) => {
         {fields.map((f,i) => (
           <div key={i} style={{ marginBottom:24 }}>
             <div style={{ fontSize:12,fontWeight:700,color:"var(--text2)",textTransform:"uppercase",letterSpacing:1,marginBottom:10 }}>{f.l}</div>
-            <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:16 }}>
-              {[f.ka, f.kb].map((val,j) => (
-                <div key={j} style={{ background:"var(--surface2)",borderRadius:10,padding:"12px 16px",fontWeight:700,fontSize:15,color:"var(--accent1)",fontFamily:"'JetBrains Mono',monospace" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))", gap: 16 }}>
+              {[f.ka, f.kb].map((val, j) => (
+                <div key={j} style={{ background: "var(--surface2)", borderRadius: 10, padding: "12px 16px", fontWeight: 700, fontSize: 15, color: "var(--accent1)", fontFamily: "'JetBrains Mono',monospace", textAlign: "center" }}>
                   {val}
                 </div>
               ))}
             </div>
             {typeof f.ka === "number" && (
-              <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:6 }}>
-                {[f.ka, f.kb].map((val,j) => {
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))", gap: 16, marginTop: 10 }}>
+                {[f.ka, f.kb].map((val, j) => {
                   const max = Math.max(f.ka, f.kb) || 1;
                   return (
-                    <div key={j} style={{ height:6,background:"var(--border)",borderRadius:3,overflow:"hidden" }}>
-                      <div style={{ height:"100%",width:`${(val/max)*100}%`,background:"var(--grad)",borderRadius:3,transition:"width 0.8s" }}/>
+                    <div key={j} style={{ height: 10, background: "var(--border)", borderRadius: 5, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${(val / max) * 100}%`, background: "var(--grad)", borderRadius: 5, transition: "width 0.8s" }} />
                     </div>
                   );
                 })}
@@ -1062,11 +1199,11 @@ const ComparePage = ({ careers, onBack, userSkills }) => {
 
 // ─── ABOUT PAGE ───────────────────────────────────────────────────────────────
 const AboutPage = () => (
-  <div className="page" style={{ paddingTop:90,maxWidth:900,margin:"0 auto",padding:"90px 24px 60px" }}>
-    <div className="fade-up" style={{ textAlign:"center",marginBottom:60 }}>
-      <RKSLogo size={80}/>
-      <h2 style={{ fontSize:40,fontWeight:900,marginTop:20,marginBottom:12 }}>About RKS CODE</h2>
-      <p style={{ color:"var(--text2)",fontSize:17,maxWidth:600,margin:"0 auto",lineHeight:1.7 }}>
+  <div className="page" style={{ paddingTop: "var(--nav-height)", maxWidth: 900, margin: "0 auto", padding: "60px var(--container-pad)" }}>
+    <div className="fade-up" style={{ textAlign: "center", marginBottom: 60 }}>
+      <RKSLogo size={80} />
+      <h2 style={{ fontSize: "clamp(32px, 8vw, 40px)", fontWeight: 900, marginTop: 20, marginBottom: 12 }}>About RKS CODE</h2>
+      <p style={{ color: "var(--text2)", fontSize: 17, maxWidth: 600, margin: "0 auto", lineHeight: 1.7 }}>
         RKS CODE is an AI-powered career guidance platform designed to help students from all academic backgrounds discover their ideal career paths.
       </p>
     </div>
@@ -1097,12 +1234,12 @@ const ContactPage = ({ notify }) => {
     setForm({ name:"", email:"", msg:"" });
   };
   return (
-    <div className="page" style={{ paddingTop:90,maxWidth:700,margin:"0 auto",padding:"90px 24px 60px" }}>
-      <div className="fade-up" style={{ textAlign:"center",marginBottom:48 }}>
-        <h2 style={{ fontSize:40,fontWeight:900,marginBottom:12 }}>Get in Touch</h2>
-        <p style={{ color:"var(--text2)",fontSize:16 }}>Questions, feedback, or partnerships — we'd love to hear from you.</p>
-      </div>
-      <div className="glass" style={{ padding:36 }}>
+  <div className="page" style={{ paddingTop: "var(--nav-height)", maxWidth: 700, margin: "0 auto", padding: "60px var(--container-pad)" }}>
+    <div className="fade-up" style={{ textAlign: "center", marginBottom: 48 }}>
+      <h2 style={{ fontSize: "clamp(32px, 8vw, 40px)", fontWeight: 900, marginBottom: 12 }}>Get in Touch</h2>
+      <p style={{ color: "var(--text2)", fontSize: 16 }}>Questions, feedback, or partnerships — we'd love to hear from you.</p>
+    </div>
+    <div className="glass" style={{ padding: "clamp(24px, 5vw, 36px)" }}>
         {[
           { l:"Your Name", k:"name", p:"Enter your full name" },
           { l:"Email Address", k:"email", p:"your@email.com" },

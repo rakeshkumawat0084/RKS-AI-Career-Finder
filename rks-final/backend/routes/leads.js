@@ -1,6 +1,6 @@
 const express = require("express");
-const router  = express.Router();
-const Lead    = require("../models/Lead");
+const router = express.Router();
+const Lead = require("../models/Lead");
 
 // GET /api/leads/stats  — must be BEFORE /:id route
 router.get("/stats", async (req, res) => {
@@ -43,7 +43,7 @@ router.get("/", async (req, res) => {
     if (stream !== "all") filter.stream = stream;
     if (search.trim()) {
       filter.$or = [
-        { name:  { $regex: search.trim(), $options: "i" } },
+        { name: { $regex: search.trim(), $options: "i" } },
         { email: { $regex: search.trim(), $options: "i" } },
       ];
     }

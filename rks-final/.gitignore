@@ -1,0 +1,30 @@
+# Dependencies - never commit these
+node_modules/
+**/node_modules/
+
+# Environment files - NEVER commit, contains passwords
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+
+# Build output
+/build
+/dist
+**/build/
+**/dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp

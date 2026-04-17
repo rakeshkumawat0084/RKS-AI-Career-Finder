@@ -10,7 +10,7 @@ const mongoSanitize = require("express-mongo-sanitize");
 const app  = express();
 const PORT = process.env.PORT || 5000;
 
-// ── Startup checks ────────────────────────────────────────────────────────────
+// ── Startup checks ───────────────────────────────────────────
 if (!process.env.MONGO_URI || process.env.MONGO_URI.includes("YOUR_USERNAME")) {
   console.error("\n❌ MONGO_URI not set in backend/.env — add your MongoDB Atlas string\n");
   process.exit(1);
@@ -20,11 +20,11 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
   process.exit(1);
 }
 
-// ── Security headers ──────────────────────────────────────────────────────────
+// ── Security headers ───────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.set("trust proxy", 1);
 
-// ── CORS ──────────────────────────────────────────────────────────────────────
+// ── CORS ──────────────────────────────────────────
 const allowed = [
   "http://localhost:3000",
   "http://localhost:3001",
@@ -62,7 +62,7 @@ const emailLimiter = rateLimit({
   message: { success: false, message: "Email limit reached, try again in 1 hour." },
 });
 
-// ── Dev logger ────────────────────────────────────────────────────────────────
+// ── Dev logger ────────────────────────────────────────────────────────────────___
 if (process.env.NODE_ENV !== "production") {
   app.use((req, _res, next) => {
     console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.path}`);
